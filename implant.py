@@ -33,7 +33,7 @@ class Computer:
         self.local_forward = 0
 
     def __str__(self):
-        print "IP:\t\t%s" % self.ip
+        print "IP:\t\t%s" % self.host
         print "\tSSH PORT:\t%d" % self.ssh_port
         print "\tLOCAL FORWARD\t%d" % self.local_forward
         print "\tACCOUNTS:\t\t%s" % self.accounts
@@ -125,7 +125,7 @@ def begin_attack(client):
         # gets the servers.txt
         stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
         new_servers = stdout.readlines()
-        print "%s\n\t%s" % (server.ip, new_servers)
+        print "%s\n\t%s" % (server.host, new_servers)
         new_servers = map(lambda x: x.strip(), new_servers)
         for s in new_servers:
             host, port = get_host_port(s)
