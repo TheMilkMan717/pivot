@@ -122,11 +122,12 @@ def begin_attack(client):
                 q.put(compObj)
 
                 # set up forwarder to the new computer
+                    verbose('Now forwarding %s:%d to %s:%d ...' % (server.host, server.ssh_port, compObj.host, compObj.ssh_port))
                 try:
                     forward_tunnel(server.ssh_port, compObj.host, compObj.ssh_port, client.get_transport())
                     verbose('Now forwarding %s:%d to %s:%d ...' % (server.host, server.ssh_port, compObj.host, compObj.ssh_port))
                 except Exception:
-                    print e
+                    print "no forwarding" 
 
 
 
