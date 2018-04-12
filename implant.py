@@ -177,10 +177,11 @@ def crack_with_john(hashes_lst):
     # write each hash to the file so john can do its thingy thing
     for h in hashes_lst:
         f.write(h)
-
     f.close()
 
-    os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt" % (WORDLIST))
+    print "Cracking newly found hashes..."
+
+    os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt > /dev/null" % (WORDLIST))
     # get only the user/pass output from john
     hashes = subprocess.Popen("john --show curr_hashes.txt | grep ':'", shell=True, stdout=subprocess.PIPE).communicate()[0]
 
@@ -201,7 +202,6 @@ def crack_with_john(hashes_lst):
         if not (passwd in PASSWORDS):
             PASSWORDS.append(passwd)
             print "Adding %s to Password list" % passwd
-
     
 
 if __name__ == "__main__":
