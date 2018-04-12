@@ -137,7 +137,7 @@ def parse_options():
                       help='private key file to use for SSH authentication')
     parser.add_option('', '--no-key', action='store_false', dest='look_for_keys', default=True,
                       help='don\'t look for or use a private key file')
-    parser.add_option('-P', '--password', action='store_true', dest='readpass', default=False,
+    parser.add_option('-P', '--password', action='store', type='string', dest='readpass', default=None,
                       help='read password (for key or password auth) from stdin')
     parser.add_option('-r', '--remote', action='store', type='string', dest='remote', default=None, metavar='host:port',
                       help='remote host and port to forward to')
@@ -157,9 +157,9 @@ def parse_options():
 def main():
     options, server, remote = parse_options()
     
-    password = None
-    if options.readpass:
-        password = getpass.getpass('Enter SSH password: ')
+    password = options.readpass
+    # if options.readpass:
+    #     password = getpass.getpass('Enter SSH password: ')
     
     client = paramiko.SSHClient()
     client.load_system_host_keys()

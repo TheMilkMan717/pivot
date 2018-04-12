@@ -134,7 +134,6 @@ def begin_attack(client, host):
 
 
 
-
 if __name__ == "__main__":
     # init paramiko
     # conf = paramiko.SSHConfig()
