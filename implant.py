@@ -132,4 +132,4 @@ if __name__ == "__main__":
         ip_list.append(host)
         q.put(compObj)
 
-    begin_attack(client, q)
+    begin_attack(client)
