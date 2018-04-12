@@ -182,10 +182,12 @@ def crack_with_john(hashes_lst):
 
     os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt" % (WORDLIST))
     # get only the user/pass output from john
-    hashes = subprocess.Popen("john --show curr_hashes.txt | grep ':'", shell=True, stdout=subprocess.PIPE).communcate()[0]
+    hashes = subprocess.Popen("john --show curr_hashes.txt | grep ':'", shell=True, stdout=subprocess.PIPE).communicate()[0]
 
     # split it into array
     hashes = hashes.split('\n')
+    # for some reason subprocess.Popen adds a new line at the end of output
+    hashes = hashes[:-1]
     # for each hash it finds
     for h in hashes:
         tokens = h.split(":")
@@ -194,9 +196,11 @@ def crack_with_john(hashes_lst):
         # add the username to the summary list
         if not (user in USERNAMES):
             USERNAMES.append(user)
+            print "Adding %s to Username list" % user
         # add the password to the summary list
         if not (passwd in PASSWORDS):
             PASSWORDS.append(passwd)
+            print "Adding %s to Password list" % passwd
 
     
 
