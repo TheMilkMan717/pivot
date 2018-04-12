@@ -3,6 +3,7 @@ import os
 import socket
 import select
 import Queue
+import threading
 try:
     import SocketServer
 except ImportError:
@@ -16,7 +17,7 @@ DEFAULT_PASS = "student"
 ROOT = "root"
 q = Queue.Queue()
 ip_list = []
-START_FORWARD = 9050
+FORWARD_PORT = 9050
 
 class Computer:
     def __init__(self, ip, ssh_port):
@@ -83,7 +84,7 @@ def forward_tunnel(local_port, remote_host, remote_port, transport):
         chain_host = remote_host
         chain_port = remote_port
         ssh_transport = transport
-    ForwardServer(('', local_port), SubHander).serve_forever()
+    threading.Thread(target=ForwardServer(('', local_port), SubHander).serve_forever).start()
 
 def verbose(s):
     if g_verbose:
@@ -126,9 +127,7 @@ def begin_attack(client):
 
                 # set up forwarder to the new computer
                 try:
-                    t = threading.Thread(target=forward_tunnel, args=(FORWARD_PORT + threading.activeCount(), compObj.host, compObj.ssh_port, client.get_transport()))
-                    t.start()
-                    # forward_tunnel(server.ssh_port, compObj.host, compObj.ssh_port, client.get_transport())
+                    forward_tunnel(FORWARD_PORT + threading.activeCount(), compObj.host, compObj.ssh_port, client.get_transport())
                     verbose('Now forwarding %s:%d to %s:%d ...' % (server.host, server.ssh_port, compObj.host, compObj.ssh_port))
                 except Exception as e:
                     print e
