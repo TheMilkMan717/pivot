@@ -141,6 +141,7 @@ def begin_attack(client):
                     logged_in = True
                     # add the user/pass combo to the server object dict of accounts
                     server.accounts[userCred] = passCred
+                    print "Logged into %s as %s" % (server.host, userCred)
                     # if we are logged in as root
                     if userCred == "root":
                         log_root = True
@@ -150,6 +151,7 @@ def begin_attack(client):
                     passwd += 1
 
             userCred += 1
+            passwd = 0
 
         # if we have logged into the machine
         if logged_in:
