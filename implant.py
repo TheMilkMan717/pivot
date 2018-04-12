@@ -3,13 +3,13 @@ import os
 import socket
 import select
 import Queue
-import threading
 try:
     import SocketServer
 except ImportError:
     import socketServer as SocketServer
 
 import sys
+import threading
 
 g_verbose = True
 
@@ -127,17 +127,12 @@ def begin_attack(client):
 
                 # set up forwarder to the new computer
                 try:
-                    forward_tunnel(FORWARD_PORT + threading.activeCount(), compObj.host, compObj.ssh_port, client.get_transport())
-                    verbose('Now forwarding %s:%d to %s:%d ...' % (server.host, server.ssh_port, compObj.host, compObj.ssh_port))
+                    forward_tunnel(compObj.local_forward, compObj.host, compObj.ssh_port, client.get_transport())
+                    verbose('Now forwarding %s:%d to %s:%d ...' % ("localhost", compObj.local_forward, compObj.host, compObj.ssh_port))
                 except Exception as e:
                     print e
 
 
-
-    # try:
-    #     forward_tunnel(options.port, remote[0], remote[1], client.get_transport())
-    # except KeyboardInterrupt:
-    #     print('C-c: Port forwarding stopped.')
 
 
 if __name__ == "__main__":
@@ -158,4 +153,9 @@ if __name__ == "__main__":
         ip_list.append(host)
         q.put(compObj)
 
-    begin_attack(client)
+    try:
+        begin_attack(client)
+    except KeyboardInterrupt:
+        for t in threading.enumerate():
+            pass
+        sys.exit(1)
