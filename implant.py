@@ -110,7 +110,7 @@ def begin_attack(client):
         # at this point we are connected via SSH
         # gets the servers.txt
         stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
-        new_servers = stdout.split("\n")
+        new_servers = stdout.readlines().split("\n")
         print new_servers
         for s in new_servers:
             host, port = get_host_port(s)
