@@ -181,7 +181,8 @@ def crack_with_john(hashes_lst):
 
     print "Cracking newly found hashes..."
 
-    os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt > /dev/null" % (WORDLIST))
+    # supress john output
+    os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt > /dev/null 2>&1" % (WORDLIST))
     # get only the user/pass output from john
     hashes = subprocess.Popen("john --show curr_hashes.txt | grep ':'", shell=True, stdout=subprocess.PIPE).communicate()[0]
 
