@@ -147,7 +147,9 @@ def begin_attack(client):
 
                 except Exception as e:
                     # print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
-                    pass
+                    passwd += 1
+
+            userCred += 1
 
         # if we have logged into the machine
         if logged_in:
