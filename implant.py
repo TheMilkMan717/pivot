@@ -16,6 +16,7 @@ DEFAULT_PASS = "student"
 ROOT = "root"
 q = Queue.Queue()
 ip_list = []
+START_FORWARD = 9050
 
 class Computer:
     def __init__(self, ip, ssh_port):
@@ -27,6 +28,7 @@ class Computer:
         # keys = accountName
         # values = password
         self.accounts = {}
+        self.local_forward = ""
 
     def __str__(self):
         print (self.ip, self.ssh_port, self.accounts)
@@ -119,11 +121,12 @@ def begin_attack(client):
                 # create the compObj and add it to be seen in the queue
                 compObj = Computer(host, port)
                 ip_list.append(host)
+                compObj.local_forward = FORWARD_PORT + threading.activeCount()
                 q.put(compObj)
 
                 # set up forwarder to the new computer
                 try:
-                    t = threading.Thread(target=forward_tunnel, args=(server.ssh_port, compObj.host, compObj.ssh_port, client.get_transport()))
+                    t = threading.Thread(target=forward_tunnel, args=(FORWARD_PORT + threading.activeCount(), compObj.host, compObj.ssh_port, client.get_transport()))
                     t.start()
                     # forward_tunnel(server.ssh_port, compObj.host, compObj.ssh_port, client.get_transport())
                     verbose('Now forwarding %s:%d to %s:%d ...' % (server.host, server.ssh_port, compObj.host, compObj.ssh_port))
