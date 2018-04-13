@@ -333,4 +333,4 @@ if __name__ == "__main__":
         print comp.accounts
         print
 
-    sys.exit(0)
+    print "BTW, this hangs because of threads...so it's done now, ACTUALLY"
