@@ -234,7 +234,6 @@ def crack_with_john(hashes_lst):
     # get only the user/pass output from john
     hashes = subprocess.Popen("john --show curr_hashes.txt | grep ':'", shell=True, stdout=subprocess.PIPE).communicate()[0]
 
-    print hashes
     # split it into array
     hashes = hashes.split('\n')
     # for some reason subprocess.Popen adds a new line at the end of output
