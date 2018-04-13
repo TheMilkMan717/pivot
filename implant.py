@@ -213,7 +213,7 @@ def begin_attack(client):
                     stdin, stdout, stderr = client.exec_command("cat /root/flag.txt")
                     flag_root = stdout.readlines()
                     if len(flag_root) > 0:
-                        print "FLAG FOUND ON %s@%s:\t" % ("root", server.host, flag[0])
+                        print "FLAG FOUND ON %s@%s:\t%s" % ("root", server.host, flag_root[0])
                         return
                     else:
                         print "Flag not anywhere on %s" % (server.host)
