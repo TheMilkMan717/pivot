@@ -14,7 +14,7 @@ import threading
 
 g_verbose = True
 
-WORDLIST = "/usr/share/wordlists/rockyou.txt"
+WORDLIST = "rockyou.txt"
 DEFAULT_PASS = "student"
 ROOT = "root"
 
