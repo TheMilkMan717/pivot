@@ -286,7 +286,7 @@ def crack_with_john(hashes_lst):
             PASSWORDS.append(passwd)
             # print "Adding \"%s\" to PASSWORD list" % passwd
         combos.append((user, passwd))
-        print "New Credential: %s/%s" % (user, passwd)
+        print "Credential: %s/%s" % (user, passwd)
 
     print ""
 
